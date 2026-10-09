@@ -3,7 +3,7 @@ const {chromium} = require(process.env.PLAYWRIGHT_PATH || 'playwright');
 const url = process.env.GAME_URL || `http://127.0.0.1:${process.env.GAME_PORT || 8080}/`;
 
 (async () => {
-  const browser = await chromium.launch({headless: true});
+  const browser = await chromium.launch({headless: true, ...(process.env.BROWSER_CHANNEL ? {channel: process.env.BROWSER_CHANNEL} : {})});
   try {
     const context = await browser.newContext({viewport: {width: 390, height: 844}, hasTouch: true, isMobile: true});
     const page = await context.newPage(), errors = [], failed = [], assets = new Set();

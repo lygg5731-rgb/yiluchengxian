@@ -28,11 +28,12 @@ permissions:
 
 jobs:
   docker-smoke:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
       GAME_PORT: '18080'
       GAME_BIND_ADDRESS: '127.0.0.1'
+      BROWSER_CHANNEL: chrome
     steps:
       - uses: actions/checkout@v7
       - name: Build and start the game container
@@ -43,9 +44,10 @@ jobs:
         with:
           node-version: '24'
       - name: Install browser test runtime
+        timeout-minutes: 3
         run: |
-          npm install --prefix "$RUNNER_TEMP/browser-tools" playwright
-          "$RUNNER_TEMP/browser-tools/node_modules/.bin/playwright" install --with-deps chromium
+          google-chrome --version
+          npm install --prefix "$RUNNER_TEMP/browser-tools" --no-audit --no-fund --fetch-timeout=60000 --fetch-retries=1 playwright
       - name: Play the game served by Docker
         run: PLAYWRIGHT_PATH="$RUNNER_TEMP/browser-tools/node_modules/playwright" node tests/docker-browser.cjs
       - name: Container logs
@@ -54,4 +56,3 @@ jobs:
       - name: Stop the test container
         if: always()
         run: docker compose down
-
