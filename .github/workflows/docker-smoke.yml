@@ -1,0 +1,57 @@
+name: Docker deployment check
+
+on:
+  push:
+    paths:
+      - Dockerfile
+      - compose.yaml
+      - nginx.conf
+      - .dockerignore
+      - index.html
+      - art/**
+      - tests/docker-*
+      - .github/workflows/docker-smoke.yml
+  pull_request:
+    paths:
+      - Dockerfile
+      - compose.yaml
+      - nginx.conf
+      - .dockerignore
+      - index.html
+      - art/**
+      - tests/docker-*
+      - .github/workflows/docker-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docker-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GAME_PORT: '18080'
+      GAME_BIND_ADDRESS: '127.0.0.1'
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build and start the game container
+        run: docker compose up -d --build --wait --wait-timeout 120
+      - name: Check Nginx, health, packaged HTML and every art asset
+        run: bash tests/docker-smoke.sh
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Install browser test runtime
+        run: |
+          npm install --prefix "$RUNNER_TEMP/browser-tools" playwright
+          "$RUNNER_TEMP/browser-tools/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Play the game served by Docker
+        run: PLAYWRIGHT_PATH="$RUNNER_TEMP/browser-tools/node_modules/playwright" node tests/docker-browser.cjs
+      - name: Container logs
+        if: always()
+        run: docker compose logs --no-color game
+      - name: Stop the test container
+        if: always()
+        run: docker compose down
+
