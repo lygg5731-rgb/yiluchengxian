@@ -73,3 +73,7 @@ docker run -d --name yiluchengxian --restart unless-stopped -p 8080:80 yilucheng
 之后用 `docker stop yiluchengxian` 停止，用 `docker start yiluchengxian` 再次启动。
 
 镜像使用 [官方 Nginx Alpine 镜像](https://hub.docker.com/_/nginx)，支持常见的 x86_64 和 ARM64 Linux 服务器。
+
+## 部署验证
+
+[Docker 测试工作流](https://github.com/lygg5731-rgb/yiluchengxian/actions/workflows/docker-smoke.yml) 会在 Linux 环境实际构建并启动容器，检查健康状态、Nginx 配置、HTML 与全部素材，再用浏览器执行触摸投放和暂停、恢复操作。
